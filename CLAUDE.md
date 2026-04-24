@@ -1,3 +1,94 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+FoodFlow SaaS — a Laravel 13 + Inertia.js v3 + Vue 3 single-page application. Currently in early development (starter kit scaffolding).
+
+## Development Commands
+
+### Running the App
+
+```bash
+composer run dev          # Starts server, queue, logs (pail), and Vite concurrently
+php artisan serve         # Laravel server only (http://localhost:8000)
+npm run dev               # Vite dev server only
+```
+
+### Setup (fresh clone)
+
+```bash
+composer run setup        # install deps, generate key, migrate, build frontend
+```
+
+### Testing
+
+```bash
+php artisan test --compact                    # Run all tests
+php artisan test --compact --filter=testName  # Run specific test
+php artisan make:test --pest FeatureName      # Create feature test
+php artisan make:test --pest --unit UnitName  # Create unit test
+```
+
+Tests use SQLite in-memory (configured in phpunit.xml). Pest v4 is the test framework.
+
+### Code Quality
+
+```bash
+vendor/bin/pint --dirty --format agent   # Format modified PHP files (run after any PHP change)
+npm run lint                             # ESLint fix
+npm run format                           # Prettier fix
+npm run types:check                      # TypeScript type checking (vue-tsc)
+composer run ci:check                    # Full CI pipeline: lint, format, types, tests
+```
+
+### Database
+
+```bash
+php artisan migrate                      # Run migrations
+php artisan db:seed                      # Seed (creates test@example.com user)
+```
+
+Production DB is MySQL (database: foodflow, user: foodflow_user). Dev/test uses SQLite.
+
+## Architecture
+
+### Stack
+
+- **Backend:** Laravel 13, PHP 8.3
+- **Frontend:** Vue 3 SPA via Inertia.js v3 (no client-side router)
+- **Styling:** Tailwind CSS v4
+- **Type-safe routing:** Wayfinder generates TypeScript functions from Laravel routes — import from `@/actions/` (controllers) or `@/routes/` (named routes)
+- **Build:** Vite 8 with laravel-vite-plugin, @inertiajs/vite, @tailwindcss/vite, @vitejs/plugin-vue, wayfinder
+
+### Key Paths
+
+- `resources/js/pages/` — Inertia Vue page components
+- `resources/js/types/` — Shared TypeScript types (User, Auth)
+- `resources/js/lib/utils.ts` — `cn()` utility (clsx + tailwind-merge)
+- `resources/js/actions/` — Auto-generated Wayfinder controller actions (do not edit manually)
+- `resources/js/routes/` — Auto-generated Wayfinder named routes (do not edit manually)
+- `resources/css/app.css` — Tailwind v4 entry point with custom font (Instrument Sans)
+
+### Shared Inertia Props
+
+`HandleInertiaRequests` middleware shares to all pages:
+- `name` — app name
+- `auth.user` — authenticated user (or null)
+
+### Path Alias
+
+`@/` maps to `resources/js/` (configured in tsconfig.json and vite.config.ts).
+
+### Session, Queue, Cache
+
+All use `database` driver. Queue workers run automatically with `composer run dev`.
+
+---
+
+<!-- The section below is auto-managed by Laravel Boost. Do not edit manually. -->
+
 <laravel-boost-guidelines>
 === foundation rules ===
 
@@ -11,6 +102,7 @@ This application is a Laravel application and its main Laravel ecosystems packag
 
 - php - 8.3
 - inertiajs/inertia-laravel (INERTIA_LARAVEL) - v3
+- laravel/fortify (FORTIFY) - v1
 - laravel/framework (LARAVEL) - v13
 - laravel/prompts (PROMPTS) - v0
 - laravel/wayfinder (WAYFINDER) - v0
@@ -32,6 +124,7 @@ This application is a Laravel application and its main Laravel ecosystems packag
 
 This project has domain-specific skills available. You MUST activate the relevant skill whenever you work in that domain—don't wait until you're stuck.
 
+- `fortify-development` — ACTIVATE when the user works on authentication in Laravel. This includes login, registration, password reset, email verification, two-factor authentication (2FA/TOTP/QR codes/recovery codes), profile updates, password confirmation, or any auth-related routes and controllers. Activate when the user mentions Fortify, auth, authentication, login, register, signup, forgot password, verify email, 2FA, or references app/Actions/Fortify/, CreateNewUser, UpdateUserProfileInformation, FortifyServiceProvider, config/fortify.php, or auth guards. Fortify is the frontend-agnostic authentication backend for Laravel that registers all auth routes and controllers. Also activate when building SPA or headless authentication, customizing login redirects, overriding response contracts like LoginResponse, or configuring login throttling. Do NOT activate for Laravel Passport (OAuth2 API tokens), Socialite (OAuth social login), or non-auth Laravel features.
 - `laravel-best-practices` — Apply this skill whenever writing, reviewing, or refactoring Laravel PHP code. This includes creating or modifying controllers, models, migrations, form requests, policies, jobs, scheduled commands, service classes, and Eloquent queries. Triggers for N+1 and query performance issues, caching strategies, authorization and security patterns, validation, error handling, queue and job configuration, route definitions, and architectural decisions. Also use for Laravel code reviews and refactoring existing Laravel code to follow best practices. Covers any task involving Laravel backend PHP code patterns.
 - `wayfinder-development` — Use this skill for Laravel Wayfinder which auto-generates typed functions for Laravel controllers and routes. ALWAYS use this skill when frontend code needs to call backend routes or controller actions. Trigger when: connecting any React/Vue/Svelte/Inertia frontend to Laravel controllers, routes, building end-to-end features with both frontend and backend, wiring up forms or links to backend endpoints, fixing route-related TypeScript errors, importing from @/actions or @/routes, or running wayfinder:generate. Use Wayfinder route functions instead of hardcoded URLs. Covers: wayfinder() vite plugin, .url()/.get()/.post()/.form(), query params, route model binding, tree-shaking. Do not use for backend-only task
 - `pest-testing` — Use this skill for Pest PHP testing in Laravel projects only. Trigger whenever any test is being written, edited, fixed, or refactored — including fixing tests that broke after a code change, adding assertions, converting PHPUnit to Pest, adding datasets, and TDD workflows. Always activate when the user asks how to write something in Pest, mentions test files or directories (tests/Feature, tests/Unit, tests/Browser), or needs browser testing, smoke testing multiple pages for JS errors, or architecture tests. Covers: test()/it()/expect() syntax, datasets, mocking, browser testing (visit/click/fill), smoke testing, arch(), Livewire component tests, RefreshDatabase, and all Pest 4 features. Do not use for factories, seeders, migrations, controllers, models, or non-test PHP code.
